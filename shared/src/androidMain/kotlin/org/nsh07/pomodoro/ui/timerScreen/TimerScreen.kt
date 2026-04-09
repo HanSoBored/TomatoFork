@@ -236,88 +236,88 @@ fun SharedTransitionScope.TimerScreen(
             AnimatedPane {
                 Scaffold(
                     topBar = {
-                        TopAppBar(
-                            title = {
-                                AnimatedContent(
-                                    if (!timerState.showBrandTitle) timerState.timerMode else TimerMode.BRAND,
-                                    transitionSpec = {
-                                        slideInVertically(
-                                            animationSpec = motionScheme.defaultSpatialSpec(),
-                                            initialOffsetY = { (-it * 1.25).toInt() }
-                                        ).togetherWith(
-                                            slideOutVertically(
+                        if (!widthExpanded) {
+                            TopAppBar(
+                                title = {
+                                    AnimatedContent(
+                                        if (!timerState.showBrandTitle) timerState.timerMode else TimerMode.BRAND,
+                                        transitionSpec = {
+                                            slideInVertically(
                                                 animationSpec = motionScheme.defaultSpatialSpec(),
-                                                targetOffsetY = { (it * 1.25).toInt() }
+                                                initialOffsetY = { (-it * 1.25).toInt() }
+                                            ).togetherWith(
+                                                slideOutVertically(
+                                                    animationSpec = motionScheme.defaultSpatialSpec(),
+                                                    targetOffsetY = { (it * 1.25).toInt() }
+                                                )
                                             )
-                                        )
-                                    },
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier.fillMaxWidth(.9f)
-                                ) {
-                                    when (it) {
-                                        TimerMode.BRAND ->
-                                            Text(
-                                                if (widthExpanded) ""
-                                                else if (!isPlus) stringResource(Res.string.app_name)
-                                                else stringResource(Res.string.app_name_plus),
-                                                style = TextStyle(
-                                                    fontFamily = LocalAppFonts.current.topBarTitle,
-                                                    fontSize = 32.sp,
-                                                    lineHeight = 32.sp,
-                                                    color = colorScheme.error
-                                                ),
-                                                textAlign = TextAlign.Center
-                                            )
-
-                                        TimerMode.FOCUS ->
-                                            AnimatedContent(timerState.infiniteFocus) { inf ->
+                                        },
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.fillMaxWidth(.9f)
+                                    ) {
+                                        when (it) {
+                                            TimerMode.BRAND ->
                                                 Text(
-                                                    if (widthExpanded) ""
-                                                    else if (inf) stringResource(Res.string.infinite_focus)
-                                                    else stringResource(Res.string.focus),
+                                                    if (!isPlus) stringResource(Res.string.app_name)
+                                                    else stringResource(Res.string.app_name_plus),
                                                     style = TextStyle(
                                                         fontFamily = LocalAppFonts.current.topBarTitle,
                                                         fontSize = 32.sp,
                                                         lineHeight = 32.sp,
-                                                        color = colorScheme.primary
+                                                        color = colorScheme.error
                                                     ),
                                                     textAlign = TextAlign.Center
                                                 )
-                                            }
 
-                                        TimerMode.SHORT_BREAK -> Text(
-                                            if (widthExpanded) "" else stringResource(Res.string.short_break),
-                                            style = TextStyle(
-                                                fontFamily = LocalAppFonts.current.topBarTitle,
-                                                fontSize = 32.sp,
-                                                lineHeight = 32.sp,
-                                                color = colorScheme.tertiary
-                                            ),
-                                            textAlign = TextAlign.Center
-                                        )
+                                            TimerMode.FOCUS ->
+                                                AnimatedContent(timerState.infiniteFocus) { inf ->
+                                                    Text(
+                                                        if (inf) stringResource(Res.string.infinite_focus)
+                                                        else stringResource(Res.string.focus),
+                                                        style = TextStyle(
+                                                            fontFamily = LocalAppFonts.current.topBarTitle,
+                                                            fontSize = 32.sp,
+                                                            lineHeight = 32.sp,
+                                                            color = colorScheme.primary
+                                                        ),
+                                                        textAlign = TextAlign.Center
+                                                    )
+                                                }
 
-                                        TimerMode.LONG_BREAK -> Text(
-                                            if (widthExpanded) "" else stringResource(Res.string.long_break),
-                                            style = TextStyle(
-                                                fontFamily = LocalAppFonts.current.topBarTitle,
-                                                fontSize = 32.sp,
-                                                lineHeight = 32.sp,
-                                                color = colorScheme.tertiary
-                                            ),
-                                            textAlign = TextAlign.Center
-                                        )
+                                            TimerMode.SHORT_BREAK -> Text(
+                                                stringResource(Res.string.short_break),
+                                                style = TextStyle(
+                                                    fontFamily = LocalAppFonts.current.topBarTitle,
+                                                    fontSize = 32.sp,
+                                                    lineHeight = 32.sp,
+                                                    color = colorScheme.tertiary
+                                                ),
+                                                textAlign = TextAlign.Center
+                                            )
+
+                                            TimerMode.LONG_BREAK -> Text(
+                                                stringResource(Res.string.long_break),
+                                                style = TextStyle(
+                                                    fontFamily = LocalAppFonts.current.topBarTitle,
+                                                    fontSize = 32.sp,
+                                                    lineHeight = 32.sp,
+                                                    color = colorScheme.tertiary
+                                                ),
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
                                     }
-                                }
-                            },
-                            subtitle = {},
-                            titleHorizontalAlignment = CenterHorizontally,
-                            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-                            scrollBehavior = scrollBehavior
-                        )
+                                },
+                                subtitle = {},
+                                titleHorizontalAlignment = CenterHorizontally,
+                                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                                scrollBehavior = scrollBehavior
+                            )
+                        }
                     },
                     bottomBar = { Spacer(Modifier.height(contentPadding.calculateBottomPadding())) },
                     snackbarHost = { SnackbarHost(snackbarHostState) },
-                    modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+                    modifier = if (!widthExpanded) modifier.nestedScroll(scrollBehavior.nestedScrollConnection) else modifier
                 ) { innerPadding ->
                     LazyColumn(
                         verticalArrangement = Arrangement.Center,
@@ -722,20 +722,20 @@ fun SharedTransitionScope.TimerScreen(
                         .padding(horizontal = 16.dp)
                 ) {
                     item {
-                        TopAppBar(
-                            title = {
-                                if (!widthExpanded) {
+                        if (!widthExpanded) {
+                            TopAppBar(
+                                title = {
                                     Text(
                                         text = stringResource(Res.string.up_next),
                                         fontFamily = LocalAppFonts.current.topBarTitle,
                                         maxLines = 1
                                     )
-                                }
-                            },
-                            subtitle = {},
-                            windowInsets = WindowInsets(),
-                            colors = detailPaneTopBarColors
-                        )
+                                },
+                                subtitle = {},
+                                windowInsets = WindowInsets(),
+                                colors = detailPaneTopBarColors
+                            )
+                        }
                     }
                     items(timerState.totalFocusCount) {
                         val currentSession =
