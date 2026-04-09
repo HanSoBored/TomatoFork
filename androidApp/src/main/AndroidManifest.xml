@@ -39,6 +39,7 @@
 
         <activity
             android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout"
             android:exported="true"
             android:theme="@style/Theme.Tomato.Splash">
             <intent-filter>

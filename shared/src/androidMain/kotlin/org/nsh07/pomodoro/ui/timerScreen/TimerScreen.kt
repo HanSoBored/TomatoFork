@@ -90,7 +90,9 @@ import androidx.compose.material3.adaptive.layout.AdaptStrategy
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.SupportingPaneScaffold
 import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldDefaults
+import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.rememberPaneExpansionState
+import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.material3.adaptive.navigation.rememberSupportingPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -218,6 +220,15 @@ fun SharedTransitionScope.TimerScreen(
     )
     val expansionState = rememberPaneExpansionState()
 
+    // Navigate to supporting pane when widthExpanded changes
+    LaunchedEffect(widthExpanded) {
+        if (widthExpanded) {
+            navigator.navigateTo(SupportingPaneScaffoldRole.Supporting)
+        } else {
+            navigator.navigateBack(BackNavigationBehavior.PopUntilScaffoldValueChange)
+        }
+    }
+
     SupportingPaneScaffold(
         directive = navigator.scaffoldDirective,
         scaffoldState = navigator.scaffoldState,
@@ -246,7 +257,8 @@ fun SharedTransitionScope.TimerScreen(
                                     when (it) {
                                         TimerMode.BRAND ->
                                             Text(
-                                                if (!isPlus) stringResource(Res.string.app_name)
+                                                if (widthExpanded) ""
+                                                else if (!isPlus) stringResource(Res.string.app_name)
                                                 else stringResource(Res.string.app_name_plus),
                                                 style = TextStyle(
                                                     fontFamily = LocalAppFonts.current.topBarTitle,
@@ -260,7 +272,8 @@ fun SharedTransitionScope.TimerScreen(
                                         TimerMode.FOCUS ->
                                             AnimatedContent(timerState.infiniteFocus) { inf ->
                                                 Text(
-                                                    if (inf) stringResource(Res.string.infinite_focus)
+                                                    if (widthExpanded) ""
+                                                    else if (inf) stringResource(Res.string.infinite_focus)
                                                     else stringResource(Res.string.focus),
                                                     style = TextStyle(
                                                         fontFamily = LocalAppFonts.current.topBarTitle,
@@ -273,7 +286,7 @@ fun SharedTransitionScope.TimerScreen(
                                             }
 
                                         TimerMode.SHORT_BREAK -> Text(
-                                            stringResource(Res.string.short_break),
+                                            if (widthExpanded) "" else stringResource(Res.string.short_break),
                                             style = TextStyle(
                                                 fontFamily = LocalAppFonts.current.topBarTitle,
                                                 fontSize = 32.sp,
@@ -284,7 +297,7 @@ fun SharedTransitionScope.TimerScreen(
                                         )
 
                                         TimerMode.LONG_BREAK -> Text(
-                                            stringResource(Res.string.long_break),
+                                            if (widthExpanded) "" else stringResource(Res.string.long_break),
                                             style = TextStyle(
                                                 fontFamily = LocalAppFonts.current.topBarTitle,
                                                 fontSize = 32.sp,
@@ -711,11 +724,13 @@ fun SharedTransitionScope.TimerScreen(
                     item {
                         TopAppBar(
                             title = {
-                                Text(
-                                    text = stringResource(Res.string.up_next),
-                                    fontFamily = LocalAppFonts.current.topBarTitle,
-                                    maxLines = 1
-                                )
+                                if (!widthExpanded) {
+                                    Text(
+                                        text = stringResource(Res.string.up_next),
+                                        fontFamily = LocalAppFonts.current.topBarTitle,
+                                        maxLines = 1
+                                    )
+                                }
                             },
                             subtitle = {},
                             windowInsets = WindowInsets(),
