@@ -18,6 +18,7 @@
 package org.nsh07.pomodoro.ui
 
 import android.content.Intent
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SharedTransitionLayout
@@ -70,6 +71,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextOverflow
@@ -129,6 +131,8 @@ fun AppScreen(
 
     val layoutDirection = LocalLayoutDirection.current
     val motionScheme = motionScheme
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
     val systemBarsInsets = WindowInsets.systemBars.asPaddingValues()
     val cutoutInsets = WindowInsets.displayCutout.asPaddingValues()
@@ -206,22 +210,28 @@ fun AppScreen(
                         ),
                     Alignment.Center
                 ) {
-                    HorizontalFloatingToolbar(
-                        expanded = true,
-                        scrollBehavior = toolbarScrollBehavior,
-                        colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(
-                            toolbarContainerColor = primaryContainer,
-                            toolbarContentColor = onPrimaryContainer
-                        ),
-                        modifier = Modifier
+                    if (isLandscape) {
+                        LandscapeNavMenu(
+                            backStack = backStack,
+                            mainScreens = mainScreens
+                        )
+                    } else {
+                        HorizontalFloatingToolbar(
+                            expanded = true,
+                            scrollBehavior = toolbarScrollBehavior,
+                            colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(
+                                toolbarContainerColor = primaryContainer,
+                                toolbarContentColor = onPrimaryContainer
+                            ),
+                            modifier = Modifier
                             .padding(
                                 top = ScreenOffset,
                                 bottom = (if (isImmersive && backStack.lastOrNull() !is Screen.AOD) 0.dp
                                     else systemBarsInsets.calculateBottomPadding()) + ScreenOffset
                             )
                             .zIndex(1f)
-                    ) {
-                        mainScreens.fastForEach { item ->
+                        ) {
+                            mainScreens.fastForEach { item ->
                             val selected by remember { derivedStateOf { backStack.lastOrNull() == item.route } }
                             TooltipBox(
                                 positionProvider =
@@ -289,6 +299,7 @@ fun AppScreen(
                             }
                         }
                     }
+                    } // end else { HorizontalFloatingToolbar
                 }
             }
         },
