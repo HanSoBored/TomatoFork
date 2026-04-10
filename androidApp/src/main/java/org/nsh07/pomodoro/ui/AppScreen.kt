@@ -113,6 +113,7 @@ import tomato.shared.generated.resources.timer_outlined
 fun AppScreen(
     isAODEnabled: Boolean,
     isPlus: Boolean,
+    isImmersive: Boolean,
     setTimerFrequency: (Float) -> Unit,
     modifier: Modifier = Modifier,
     flavorUI: FlavorUI = koinInject(),
@@ -215,8 +216,8 @@ fun AppScreen(
                         modifier = Modifier
                             .padding(
                                 top = ScreenOffset,
-                                bottom = systemBarsInsets.calculateBottomPadding()
-                                        + ScreenOffset
+                                bottom = (if (isImmersive && backStack.lastOrNull() !is Screen.AOD) 0.dp
+                                    else systemBarsInsets.calculateBottomPadding()) + ScreenOffset
                             )
                             .zIndex(1f)
                     ) {

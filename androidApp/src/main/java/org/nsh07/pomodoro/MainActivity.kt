@@ -17,6 +17,7 @@
 
 package org.nsh07.pomodoro
 
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -31,6 +32,7 @@ import org.koin.android.ext.android.inject
 import org.nsh07.pomodoro.data.StateRepository
 import org.nsh07.pomodoro.di.ActivityCallbacks
 import org.nsh07.pomodoro.ui.AppScreen
+import org.nsh07.pomodoro.ui.ImmersiveModeManager
 import org.nsh07.pomodoro.ui.settingsScreen.viewModel.SettingsViewModel
 import org.nsh07.pomodoro.ui.theme.TomatoTheme
 import org.nsh07.pomodoro.utils.toColor
@@ -40,10 +42,16 @@ class MainActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by inject()
     private val stateRepository: StateRepository by inject()
     private val activityCallbacks: ActivityCallbacks by inject()
+    private val immersiveModeManager by lazy { ImmersiveModeManager(window, window.decorView) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Apply immersive mode on cold start (fixes landscape launch issue)
+        val settingsState = settingsViewModel.settingsState.value
+        val isInMultiWindow = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode
+        immersiveModeManager.applyImmersiveMode(resources.configuration, settingsState.aodEnabled, isInMultiWindow)
 
         activityCallbacks.activityTurnScreenOn = {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
@@ -64,6 +72,7 @@ class MainActivity : ComponentActivity() {
             val seed = settingsState.colorScheme.toColor()
 
             val isPlus by settingsViewModel.isPlus.collectAsStateWithLifecycle()
+            val isImmersive by immersiveModeManager.isImmersive.collectAsStateWithLifecycle()
 
             TomatoTheme(
                 darkTheme = darkTheme,
@@ -77,6 +86,7 @@ class MainActivity : ComponentActivity() {
 
                 AppScreen(
                     isPlus = isPlus,
+                    isImmersive = isImmersive,
                     isAODEnabled = settingsState.aodEnabled,
                     setTimerFrequency = {
                         stateRepository.timerFrequency = it
@@ -97,5 +107,17 @@ class MainActivity : ComponentActivity() {
         super.onStart()
         // Increase the timer loop frequency again when visible to make the progress smoother
         stateRepository.timerFrequency = 60f
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        val settingsState = settingsViewModel.settingsState.value
+        val isInMultiWindow = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode
+        immersiveModeManager.applyImmersiveMode(newConfig, settingsState.aodEnabled, isInMultiWindow)
+    }
+
+    override fun onDestroy() {
+        immersiveModeManager.resetOnDestroy()
+        super.onDestroy()
     }
 }
